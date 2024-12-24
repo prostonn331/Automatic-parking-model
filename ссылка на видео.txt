@@ -1,1 +1,5 @@
 https://www.youtube.com/watch?v=s5oXWSccBcA
+
+Мини-4-канальный драйвер привода двигателя Shield L293 L293D
+
+Mini 4CH 4-Channel Motor Driver Module Motor Drive Shield L293D Expansion Board for Arduino
