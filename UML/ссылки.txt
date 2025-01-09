@@ -1,0 +1,3 @@
+Диаграмма вариантов использования (UseCase diagram)
+https://flexberry.github.io/ru/fd_use-case-diagram.html
+
