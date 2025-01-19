@@ -2,6 +2,10 @@
 #include <ESP8266WebServer.h>
 #include <FS.h>
 #include <IPAddress.h>
+#include <TaskScheduler.h>
+
+#define PIN_TRIG 14 
+#define PIN_ECHO 12 
 
 // Настройки точки доступа
 const char* ssid = "ESP8266_AP";
@@ -18,8 +22,20 @@ bool backwardFlag = false;
 bool stopFlag = true;
 bool parkFlag = false;
 
+long duration = 0; // длительность импульса
+long curent_dist = 0; // расстояние в см
+
+// прототип функций
+void distance();   //задаем прототип для определения дистанции
+void show_data(); // прототип для отладочной информации
+
+// Создаем объекты 
+Scheduler userScheduler;   // планировщик
 // Создаем веб-сервер на порту 80
 ESP8266WebServer server(80);
+
+Task taskDistance(TASK_MILLISECOND * 100 , TASK_FOREVER, &distance);   // задание для УЗ-датчика
+Task taskShow(TASK_MILLISECOND * 500 , TASK_FOREVER, &show_data);   // задание для вывода отладочной информации
 
 // HTML страница
 const char index_html[] PROGMEM = R"rawliteral(
@@ -122,6 +138,8 @@ void handlePark() {
 }
 
 void setup() {
+  pinMode(PIN_TRIG, OUTPUT);
+  pinMode(PIN_ECHO, INPUT);
   Serial.begin(115200);
 
   // Инициализация файловой системы
@@ -150,12 +168,40 @@ void setup() {
   // Запуск сервера
   server.begin();
   Serial.println("HTTP server started");
+
+// добавляем задания в обработчик
+userScheduler.addTask(taskDistance);
+userScheduler.addTask(taskShow);
+
+// запускаем задания
+taskDistance.enable();
+taskShow.enable();
 }
 
 void loop() {
   server.handleClient();
+  userScheduler.execute();    //запуск планировщика заданий
 
-  // Вывод текущих состояний для отладки
+  
+}
+
+void distance(){
+  // датчик расстояния
+  // Создаем короткий импульс длительностью 5 микросекунд.
+  digitalWrite(PIN_TRIG, LOW);
+  delayMicroseconds(5);
+  digitalWrite(PIN_TRIG, HIGH);
+  // Установим высокий уровень сигнала
+  delayMicroseconds(10);
+  digitalWrite(PIN_TRIG, LOW);
+  //  Определяем задержку сигнала
+  duration = pulseIn(PIN_ECHO, HIGH);
+  // Преобразуем время задержки в расстояние
+  curent_dist = (duration / 2) / 29.1;
+}
+
+void show_data(){
+// Вывод текущих состояний для отладки
   Serial.print("Forward: ");
   Serial.print(forwardFlag);
   Serial.print(" | Backward: ");
@@ -163,6 +209,8 @@ void loop() {
   Serial.print(" | Stop: ");
   Serial.print(stopFlag);
   Serial.print(" | Park: ");
-  Serial.println(parkFlag);
-  delay(1000);
+  Serial.print(parkFlag);
+  Serial.print(" | Dist: ");
+  Serial.println(curent_dist);
+  
 }
