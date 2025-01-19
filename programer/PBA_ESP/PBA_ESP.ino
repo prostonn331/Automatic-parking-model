@@ -82,6 +82,11 @@ const char index_html[] PROGMEM = R"rawliteral(
       font-size: 50px;
       margin-top: 20px;
     }
+    #status {
+      margin-top: 20px;
+      font-size: 30px;
+      color: green;
+    }
   </style>
 </head>
 <body>
@@ -93,15 +98,17 @@ const char index_html[] PROGMEM = R"rawliteral(
     <button onclick="sendRequest('stop')">Стоп</button>
     <button onclick="sendRequest('park')">Парковка</button>
   </div>
+  <div id="status"></div>
   <script>
     function sendRequest(action) {
-      fetch('/' + action).then(response => {
-        if (response.ok) {
-          console.log(action + ' sent');
-        } else {
-          console.error('Error sending ' + action);
-        }
-      });
+      fetch('/' + action)
+        .then(response => response.text())
+        .then(text => {
+          document.getElementById('status').textContent = text;
+        })
+        .catch(error => {
+          document.getElementById('status').textContent = 'Ошибка: ' + error;
+        });
     }
   </script>
 </body>
@@ -127,7 +134,7 @@ void handleForward() {
   backwardFlag = false;
   stopFlag = false;
   parkFlag = false;
-  server.send(200, "text/plain", "Forward command received");
+  server.send(200, "text/plain", "Команда 'Вперед' выполнена");
 }
 
 void handleBackward() {
@@ -135,7 +142,7 @@ void handleBackward() {
   backwardFlag = true;
   stopFlag = false;
   parkFlag = false;
-  server.send(200, "text/plain", "Backward command received");
+  server.send(200, "text/plain", "Команда 'Назад' выполнена");
 }
 
 void handleStop() {
@@ -143,7 +150,7 @@ void handleStop() {
   backwardFlag = false;
   stopFlag = true;
   parkFlag = false;
-  server.send(200, "text/plain", "Stop command received");
+  server.send(200, "text/plain", "Команда 'Стоп' выполнена");
 }
 
 void handlePark() {
@@ -151,7 +158,18 @@ void handlePark() {
   backwardFlag = false;
   stopFlag = false;
   parkFlag = true;
-  server.send(200, "text/plain", "Park command received");
+  server.send(200, "text/plain", "Команда 'Парковка' выполнена");
+}
+
+void handleStatus() {
+  String json = "{";
+  json += "\"forwardFlag\": " + String(forwardFlag ? "true" : "false") + ",";
+  json += "\"backwardFlag\": " + String(backwardFlag ? "true" : "false") + ",";
+  json += "\"stopFlag\": " + String(stopFlag ? "true" : "false") + ",";
+  json += "\"parkFlag\": " + String(parkFlag ? "true" : "false") + ",";
+  json += "\"taskEnd\": " + String(taskEnd ? "true" : "false");
+  json += "}";
+  server.send(200, "application/json", json);
 }
 
 void setup() {
@@ -185,6 +203,7 @@ void setup() {
   server.on("/backward", handleBackward);
   server.on("/stop", handleStop);
   server.on("/park", handlePark);
+  server.on("/status", handleStatus);
 
   // Запуск сервера
   server.begin();
