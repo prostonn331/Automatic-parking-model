@@ -5,7 +5,12 @@
 #include <TaskScheduler.h>
 
 #define PIN_TRIG 14 
-#define PIN_ECHO 12 
+#define PIN_ECHO 12
+// драйвер моторов
+#define PinA1 5 // D1
+#define PinA2 4 // D2
+#define PinB1 0 // D3
+#define PinB2 2 // D4 
 
 // Настройки точки доступа
 const char* ssid = "ESP8266_AP";
@@ -21,6 +26,12 @@ bool forwardFlag = false;
 bool backwardFlag = false;
 bool stopFlag = true;
 bool parkFlag = false;
+bool forwardOn = false;
+bool backwardOn = false;
+bool stopOn = false;
+
+const int max_speed = 60;  // максимальная скорость, значение ШИМ
+int cur_speed = 60; // текущая скорость
 
 long duration = 0; // длительность импульса
 long curent_dist = 0; // расстояние в см
@@ -28,6 +39,7 @@ long curent_dist = 0; // расстояние в см
 // прототип функций
 void distance();   //задаем прототип для определения дистанции
 void show_data(); // прототип для отладочной информации
+void drive_car(); // прототип для управления моторами
 
 // Создаем объекты 
 Scheduler userScheduler;   // планировщик
@@ -36,6 +48,7 @@ ESP8266WebServer server(80);
 
 Task taskDistance(TASK_MILLISECOND * 100 , TASK_FOREVER, &distance);   // задание для УЗ-датчика
 Task taskShow(TASK_MILLISECOND * 500 , TASK_FOREVER, &show_data);   // задание для вывода отладочной информации
+Task taskDrive(TASK_MILLISECOND * 75 , TASK_FOREVER, &drive_car);   // задание для управления двигателями
 
 // HTML страница
 const char index_html[] PROGMEM = R"rawliteral(
@@ -140,6 +153,10 @@ void handlePark() {
 void setup() {
   pinMode(PIN_TRIG, OUTPUT);
   pinMode(PIN_ECHO, INPUT);
+  pinMode(PinA1, OUTPUT); 
+  pinMode(PinA2, OUTPUT);
+  pinMode(PinB1, OUTPUT);
+  pinMode(PinB2, OUTPUT);
   Serial.begin(115200);
 
   // Инициализация файловой системы
@@ -172,10 +189,13 @@ void setup() {
 // добавляем задания в обработчик
 userScheduler.addTask(taskDistance);
 userScheduler.addTask(taskShow);
+userScheduler.addTask(taskDrive);
+
 
 // запускаем задания
 taskDistance.enable();
 taskShow.enable();
+taskDrive.enable();
 }
 
 void loop() {
@@ -213,4 +233,70 @@ void show_data(){
   Serial.print(" | Dist: ");
   Serial.println(curent_dist);
   
+}
+
+void drive_car(){
+  // управление моторами
+if (forwardFlag && !forwardOn) {
+   stop_drive();
+   move_forward(max_speed);
+   forwardOn = true;
+   backwardOn = false;
+   stopOn = false;
+   Serial.println("Forward on! ");
+}
+
+if (backwardFlag && !backwardOn){
+   stop_drive();
+   move_backward(max_speed);
+   forwardOn = false;
+   backwardOn = true;
+   stopOn = false;
+   Serial.println("backward on! ");  
+}
+if (stopFlag && !stopOn){
+   stop_drive();
+   stopOn = true;
+   backwardOn = false;
+   forwardOn = false;
+   Serial.println("stop on! ");
+}
+  
+}
+
+void move_backward(int speed) // Назад.
+{
+  analogWrite(PinA1, 0);
+  analogWrite(PinA2, speed);
+  analogWrite(PinB1, 0);
+  analogWrite(PinB2, speed);
+}
+void move_forward(int speed) // Вперед ...
+{
+  analogWrite(PinA1, speed);
+  analogWrite(PinA2, 0);
+  analogWrite(PinB1, speed);
+  analogWrite(PinB2, 0);
+}
+void move_left(int speed) // В левую сторону
+{
+  analogWrite(PinA1, speed);
+  analogWrite(PinA2, 0);
+  analogWrite(PinB1, 0);
+  analogWrite(PinB2, speed);
+}
+void move_right(int speed) //В правую сторону
+{
+  analogWrite(PinA1, 0);
+  analogWrite(PinA2, speed);
+  analogWrite(PinB1, speed);
+  analogWrite(PinB2, 0);
+}
+void stop_drive() //Стоп
+{
+  analogWrite(PinA1, 0);
+  analogWrite(PinA2, 0);
+  analogWrite(PinB1, 0);
+  analogWrite(PinB2, 0);
+  delay (1000);
 }
