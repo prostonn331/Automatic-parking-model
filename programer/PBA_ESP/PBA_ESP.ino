@@ -11,6 +11,7 @@
 #define PinA2 4 // D2
 #define PinB1 0 // D3
 #define PinB2 2 // D4 
+#define MIN_DIST 4 // минимальная дистанция
 
 // Настройки точки доступа
 const char* ssid = "ESP8266_AP";
@@ -29,9 +30,12 @@ bool parkFlag = false;
 bool forwardOn = false;
 bool backwardOn = false;
 bool stopOn = false;
+bool parkOn = false;
+bool taskEnd = false;
 
 const int max_speed = 60;  // максимальная скорость, значение ШИМ
-int cur_speed = 60; // текущая скорость
+const int lo_speed = 40; // медленная скорость
+//int cur_speed = 60; // текущая скорость
 
 long duration = 0; // длительность импульса
 long curent_dist = 0; // расстояние в см
@@ -48,7 +52,7 @@ ESP8266WebServer server(80);
 
 Task taskDistance(TASK_MILLISECOND * 100 , TASK_FOREVER, &distance);   // задание для УЗ-датчика
 Task taskShow(TASK_MILLISECOND * 500 , TASK_FOREVER, &show_data);   // задание для вывода отладочной информации
-Task taskDrive(TASK_MILLISECOND * 75 , TASK_FOREVER, &drive_car);   // задание для управления двигателями
+Task taskDrive(TASK_MILLISECOND * 100 , TASK_FOREVER, &drive_car);   // задание для управления двигателями
 
 // HTML страница
 const char index_html[] PROGMEM = R"rawliteral(
@@ -217,7 +221,8 @@ void distance(){
   //  Определяем задержку сигнала
   duration = pulseIn(PIN_ECHO, HIGH);
   // Преобразуем время задержки в расстояние
-  curent_dist = (duration / 2) / 29.1;
+  if (duration > 0) 
+      curent_dist = (duration / 2) / 29.1;
 }
 
 void show_data(){
@@ -243,6 +248,7 @@ if (forwardFlag && !forwardOn) {
    forwardOn = true;
    backwardOn = false;
    stopOn = false;
+   parkOn = false;
    Serial.println("Forward on! ");
 }
 
@@ -252,6 +258,7 @@ if (backwardFlag && !backwardOn){
    forwardOn = false;
    backwardOn = true;
    stopOn = false;
+   parkOn = false;
    Serial.println("backward on! ");  
 }
 if (stopFlag && !stopOn){
@@ -259,7 +266,33 @@ if (stopFlag && !stopOn){
    stopOn = true;
    backwardOn = false;
    forwardOn = false;
+   parkOn = false;
    Serial.println("stop on! ");
+}
+
+if (parkFlag && !parkOn){
+   stop_drive();
+   move_forward(max_speed);
+   parkOn = true;
+   stopOn = false;
+   backwardOn = false;
+   forwardOn = false;
+   Serial.println("park on! ");
+}
+
+if (parkOn){
+// автопарковка
+  if (curent_dist > 10 && curent_dist < 30) {
+    move_forward(lo_speed);
+  }
+  if (curent_dist < MIN_DIST) {
+    parkOn = false;
+    parkFlag = false;
+    taskEnd = true;
+    stopFlag = true;
+    stop_drive();
+  }
+  
 }
   
 }
