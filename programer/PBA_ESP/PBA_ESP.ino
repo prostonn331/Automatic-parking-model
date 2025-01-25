@@ -172,6 +172,21 @@ void handleStatus() {
   server.send(200, "application/json", json);
 }
 
+void handleSetFlag() {
+  if (server.hasArg("flag") && server.hasArg("value")) {
+    String flag = server.arg("flag");   // Получаем имя флага
+    String value = server.arg("value"); // Получаем значение флага
+
+    if (flag == "taskEnd") {
+      taskEnd = (value == "true");
+    } 
+    server.send(200, "text/plain; charset=utf-8", "Флаг изменен успешно");
+  } else {
+    server.send(400, "text/plain; charset=utf-8", "Ошибка: Отсутствуют параметры 'flag' или 'value'");
+  }
+}
+
+
 void setup() {
   pinMode(PIN_TRIG, OUTPUT);
   pinMode(PIN_ECHO, INPUT);
@@ -204,6 +219,7 @@ void setup() {
   server.on("/stop", handleStop);
   server.on("/park", handlePark);
   server.on("/status", handleStatus);
+  server.on("/set_flag", handleSetFlag);
 
   // Запуск сервера
   server.begin();
