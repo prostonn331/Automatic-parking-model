@@ -12,6 +12,7 @@
 #define PinB1 0 // D3
 #define PinB2 2 // D4 
 #define MIN_DIST 4 // минимальная дистанция
+#define DELAY_STOP 2000
 
 // Настройки точки доступа
 const char* ssid = "ESP8266_AP";
@@ -32,13 +33,15 @@ bool backwardOn = false;
 bool stopOn = false;
 bool parkOn = false;
 bool taskEnd = false;
+bool flagSlow = false;
 
-const int max_speed = 60;  // максимальная скорость, значение ШИМ
-const int lo_speed = 40; // медленная скорость
+const int max_speed = 70;  // максимальная скорость, значение ШИМ 60
+const int lo_speed = 50; // медленная скорость 40
 //int cur_speed = 60; // текущая скорость
 
 long duration = 0; // длительность импульса
 long curent_dist = 0; // расстояние в см
+unsigned long time_now = 0;
 
 // прототип функций
 void distance();   //задаем прототип для определения дистанции
@@ -172,6 +175,21 @@ void handleStatus() {
   server.send(200, "application/json", json);
 }
 
+void handleSetFlag() {
+  if (server.hasArg("flag") && server.hasArg("value")) {
+    String flag = server.arg("flag");   // Получаем имя флага
+    String value = server.arg("value"); // Получаем значение флага
+
+    if (flag == "taskEnd") {
+      taskEnd = (value == "true");
+    } 
+    server.send(200, "text/plain; charset=utf-8", "Флаг изменен успешно");
+  } else {
+    server.send(400, "text/plain; charset=utf-8", "Ошибка: Отсутствуют параметры 'flag' или 'value'");
+  }
+}
+
+
 void setup() {
   pinMode(PIN_TRIG, OUTPUT);
   pinMode(PIN_ECHO, INPUT);
@@ -204,6 +222,7 @@ void setup() {
   server.on("/stop", handleStop);
   server.on("/park", handlePark);
   server.on("/status", handleStatus);
+  server.on("/set_flag", handleSetFlag);
 
   // Запуск сервера
   server.begin();
@@ -304,11 +323,17 @@ if (parkOn){
   if (curent_dist > 10 && curent_dist < 30) {
     move_forward(lo_speed);
   }
-  if (curent_dist < MIN_DIST) {
+  if (curent_dist <= MIN_DIST && !flagSlow) {
+    flagSlow = true;
+    time_now = millis();
+  }
+
+  if (flagSlow && ((millis()- time_now) > DELAY_STOP)) {
     parkOn = false;
     parkFlag = false;
     taskEnd = true;
     stopFlag = true;
+    flagSlow = false;
     stop_drive();
   }
   

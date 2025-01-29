@@ -8,7 +8,7 @@ def recognize_qr_code_from_camera():
 
     recognized_texts = ""
     # Запуск видеопотока с камеры
-    cap = cv2.VideoCapture(0)  # Индекс 0 для стандартной камеры
+    cap = cv2.VideoCapture(2)  # Индекс 0 для стандартной камеры
 
     if not cap.isOpened():
         print("Не удалось открыть камеру.")
