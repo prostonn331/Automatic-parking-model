@@ -197,6 +197,10 @@ void setup() {
   pinMode(PinA2, OUTPUT);
   pinMode(PinB1, OUTPUT);
   pinMode(PinB2, OUTPUT);
+  digitalWrite(PinA1, 0);
+  digitalWrite(PinA2, 0);
+  digitalWrite(PinB1, 0);
+  digitalWrite(PinB2, 0);
   Serial.begin(115200);
 
   // Инициализация файловой системы
