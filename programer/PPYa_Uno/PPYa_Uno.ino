@@ -72,7 +72,8 @@ tempStr = recieveData();
              userScheduler.execute();
          }
         taskMotorUp.disable();
-        step_cnt = 0; 
+        step_cnt = 0;
+        Serial.println(go_position); 
       }
 
         if (go_position < cur_position) {
@@ -84,8 +85,13 @@ tempStr = recieveData();
              userScheduler.execute();
          }
         taskMotorDown.disable();
-        step_cnt = 0; 
+        step_cnt = 0;
+        Serial.println(go_position);  
       }
+  }
+
+  if (go_position == cur_position) {
+      Serial.println(go_position); 
   }
  }
 }
