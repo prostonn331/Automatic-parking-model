@@ -95,6 +95,7 @@ def main():
                     # Выводим ответ сервера
                         print("Ответ от ESP:", response.text)
                         taskEnd  = False
+                        control_leds(RED_PIN, GREEN_PIN, BLUE_PIN, 1, 0, 0)  # Включаем красный светодиод
                         break
                     except requests.exceptions.RequestException as e:
                         print(f"Ошибка при запросе: {e}")
@@ -112,6 +113,9 @@ def main():
                 # выводим состояние парковки
                 parked_cars = ", ".join([f"({i+1}, {car_number})" for i, car_number in enumerate(parking_system.parking_slots) ])
                 logger.info("Состояние парковки: %s", parked_cars)
+                control_leds(RED_PIN, GREEN_PIN, BLUE_PIN, 1, 0, 0)  # Включаем красный светодиод
+                time.sleep(5)
+                control_leds(RED_PIN, GREEN_PIN, BLUE_PIN, 0, 0, 0)
         if (control_cmd ==0):
                 logger.error("Нет свободных ячеек на парковке.")
 
