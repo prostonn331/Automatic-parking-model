@@ -57,6 +57,10 @@ def main():
             control_leds(RED_PIN, GREEN_PIN, BLUE_PIN, 0, 1, 0)  # Включаем зеленый светодиод
         control_cmd = parking_system.assign_slot(plate_number)
         if (control_cmd ==1):
+            data = ""
+            while data == "": 
+                data = ParkingSystem.receive_from_serial()
+                
             # выводим состояние парковки
             parked_cars = ", ".join([f"({i+1}, {car_number})" for i, car_number in enumerate(parking_system.parking_slots) ])
             logger.info("Состояние парковки: %s", parked_cars)
@@ -110,12 +114,15 @@ def main():
                     print("Нет ответа от машины о парковке!")
                     logger.error("Нет ответа от машины о парковке!")
         if (control_cmd ==2):
+            data = ""
+            while data == "": 
+                data = ParkingSystem.receive_from_serial()
                 # выводим состояние парковки
-                parked_cars = ", ".join([f"({i+1}, {car_number})" for i, car_number in enumerate(parking_system.parking_slots) ])
-                logger.info("Состояние парковки: %s", parked_cars)
-                control_leds(RED_PIN, GREEN_PIN, BLUE_PIN, 1, 0, 0)  # Включаем красный светодиод
-                time.sleep(5)
-                control_leds(RED_PIN, GREEN_PIN, BLUE_PIN, 0, 0, 0)
+            parked_cars = ", ".join([f"({i+1}, {car_number})" for i, car_number in enumerate(parking_system.parking_slots) ])
+            logger.info("Состояние парковки: %s", parked_cars)
+            control_leds(RED_PIN, GREEN_PIN, BLUE_PIN, 1, 0, 0)  # Включаем красный светодиод
+            time.sleep(5)
+            control_leds(RED_PIN, GREEN_PIN, BLUE_PIN, 0, 0, 0)
         if (control_cmd ==0):
                 logger.error("Нет свободных ячеек на парковке.")
 

@@ -65,6 +65,14 @@ class ParkingSystem:
         if self.serial_port is not None:
             command = f"{slot_number}\n"  # команда для системы управления
             self.serial_port.write(command.encode('utf-8'))
+    
+    def receive_from_serial(self):
+    # Принимает данные с последовательного порта.
+        if self.serial_port is not None and self.serial_port.in_waiting > 0:
+            data = self.serial_port.readline().decode('utf-8').strip()
+            print(f"Получено с Serial: {data}")
+            return data
+        return None
 
     def remove_car(self, car_number):
         """Удаляет машину с парковки."""
