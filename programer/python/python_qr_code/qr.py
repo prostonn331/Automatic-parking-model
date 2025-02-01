@@ -13,13 +13,13 @@ formatter2 = logging.Formatter("%(name)s %(asctime)s %(levelname)s %(message)s")
 handler2.setFormatter(formatter2)
 # добавление обработчика к логгеру
 logger2.addHandler(handler2)
-ShowFlag = True
+ShowFlag = False
 
 def recognize_qr_code_from_camera():
 
     recognized_texts = ""
     # Запуск видеопотока с камеры
-    cap = cv2.VideoCapture(2)  # Индекс 0 для стандартной камеры
+    cap = cv2.VideoCapture(1)  # Индекс 0 для стандартной камеры
 
     if not cap.isOpened():
         logger2.error("Не удалось открыть камеру.")
