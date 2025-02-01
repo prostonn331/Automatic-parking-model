@@ -4,13 +4,15 @@ from park import ParkingSystem # Импорт класса ParkingSystem из м
 import requests
 import json
 import time
-import wiringpi
+# import wiringpi
 
+'''
 def control_leds(red_pin, green_pin, blue_pin, red, green, blue):
 # Управляет светодиодами на основе входных сигналов.
     wiringpi.digitalWrite(red_pin, red)
     wiringpi.digitalWrite(green_pin, green)
     wiringpi.digitalWrite(blue_pin, blue)
+'''
 
 # настройка логгера
 logger = logging.getLogger(__name__)
@@ -24,14 +26,14 @@ handler.setFormatter(formatter)
 logger.addHandler(handler)
 
 esp_ip = "http://192.168.4.1"
-max_retries = 4  # Максимальное количество запросов к ESP8266
+max_retries = 10  # Максимальное количество запросов к ESP8266
 retry_delay = 5  # Задержка между попытками (в секундах)
 
 
 # Основная программа
 def main():
     logger.debug("Запуск программы.")
-    orangePi = True
+    orangePi = False
     if orangePi:
         
         RED_PIN = 10
@@ -57,10 +59,10 @@ def main():
             control_leds(RED_PIN, GREEN_PIN, BLUE_PIN, 0, 1, 0)  # Включаем зеленый светодиод
         control_cmd = parking_system.assign_slot(plate_number)
         if (control_cmd ==1):
-            data = ""
-            while data == "": 
-                data = ParkingSystem.receive_from_serial()
-                
+            data = None
+            while data == None: 
+                data = parking_system.receive_from_serial()
+            print (f'data from serial {data}')
             # выводим состояние парковки
             parked_cars = ", ".join([f"({i+1}, {car_number})" for i, car_number in enumerate(parking_system.parking_slots) ])
             logger.info("Состояние парковки: %s", parked_cars)
@@ -99,7 +101,8 @@ def main():
                     # Выводим ответ сервера
                         print("Ответ от ESP:", response.text)
                         taskEnd  = False
-                        control_leds(RED_PIN, GREEN_PIN, BLUE_PIN, 1, 0, 0)  # Включаем красный светодиод
+                        if orangePi:
+                            control_leds(RED_PIN, GREEN_PIN, BLUE_PIN, 1, 0, 0)  # Включаем красный светодиод
                         break
                     except requests.exceptions.RequestException as e:
                         print(f"Ошибка при запросе: {e}")
@@ -114,15 +117,18 @@ def main():
                     print("Нет ответа от машины о парковке!")
                     logger.error("Нет ответа от машины о парковке!")
         if (control_cmd ==2):
-            data = ""
-            while data == "": 
-                data = ParkingSystem.receive_from_serial()
-                # выводим состояние парковки
+            data = None
+            while data == None: 
+                data = parking_system.receive_from_serial()
+            print (f'data from serial {data}')    
+            # выводим состояние парковки
             parked_cars = ", ".join([f"({i+1}, {car_number})" for i, car_number in enumerate(parking_system.parking_slots) ])
             logger.info("Состояние парковки: %s", parked_cars)
-            control_leds(RED_PIN, GREEN_PIN, BLUE_PIN, 1, 0, 0)  # Включаем красный светодиод
-            time.sleep(5)
-            control_leds(RED_PIN, GREEN_PIN, BLUE_PIN, 0, 0, 0)
+            if orangePi:
+                control_leds(RED_PIN, GREEN_PIN, BLUE_PIN, 1, 0, 0)  # Включаем красный светодиод
+            time.sleep(7)
+            if orangePi:
+                control_leds(RED_PIN, GREEN_PIN, BLUE_PIN, 0, 0, 0)
         if (control_cmd ==0):
                 logger.error("Нет свободных ячеек на парковке.")
 
