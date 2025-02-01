@@ -4,16 +4,6 @@ from park import ParkingSystem # Импорт класса ParkingSystem из м
 import requests
 import json
 import time
-orangePi = False
-if orangePi:
-    import wiringpi
-    RED_PIN = 6
-    GREEN_PIN = 9
-    BLUE_PIN = 10
-    wiringpi.wiringPiSetup()
-    wiringpi.pinMode(RED_PIN, 1)       # Set pin  to   OUTPUT
-    wiringpi.pinMode(GREEN_PIN, 1) 
-    wiringpi.pinMode(BLUE_PIN, 1) 
 
 def control_leds(red, green, blue):
 # Управляет светодиодами на основе входных сигналов.
@@ -40,6 +30,17 @@ retry_delay = 5  # Задержка между попытками (в секун
 # Основная программа
 def main():
     logger.debug("Запуск программы.")
+    orangePi = False
+    if orangePi:
+        import wiringpi
+        RED_PIN = 6
+        GREEN_PIN = 9
+        BLUE_PIN = 10
+        wiringpi.wiringPiSetup()
+        wiringpi.pinMode(RED_PIN, 1)       # Set pin  to   OUTPUT
+        wiringpi.pinMode(GREEN_PIN, 1) 
+        wiringpi.pinMode(BLUE_PIN, 1) 
+
     parking_system = ParkingSystem(port='/dev/ttyUSB0', baudrate=9600)
     if parking_system.serial_port is None:
         logger.error("Система управления недоступна: последовательный порт не открыт.")
