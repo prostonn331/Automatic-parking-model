@@ -4,7 +4,22 @@ from park import ParkingSystem # Импорт класса ParkingSystem из м
 import requests
 import json
 import time
+orangePi = False
+if orangePi:
+    import wiringpi
+    RED_PIN = 6
+    GREEN_PIN = 9
+    BLUE_PIN = 10
+    wiringpi.wiringPiSetup()
+    wiringpi.pinMode(RED_PIN, 1)       # Set pin  to   OUTPUT
+    wiringpi.pinMode(GREEN_PIN, 1) 
+    wiringpi.pinMode(BLUE_PIN, 1) 
 
+def control_leds(red, green, blue):
+# Управляет светодиодами на основе входных сигналов.
+    wiringpi.digitalWrite(RED_PIN, red)
+    wiringpi.digitalWrite(GREEN_PIN, green)
+    wiringpi.digitalWrite(BLUE_PIN, blue)
 
 # настройка логгера
 logger = logging.getLogger(__name__)
@@ -33,7 +48,11 @@ def main():
     # основной цикл программы
     while True:
         # распознаем QR-код с камеры и пытаемся припарковать машину
+        if orangePi:
+            control_leds(0, 0, 1)  # Синий цвет
         plate_number = recognize_qr_code_from_camera()
+        if orangePi:
+            control_leds(0, 1, 0)  # Зеленый цвет
         control_cmd = parking_system.assign_slot(plate_number)
         if (control_cmd ==1):
             # выводим состояние парковки
