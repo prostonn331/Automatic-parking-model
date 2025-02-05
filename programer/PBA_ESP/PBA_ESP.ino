@@ -12,7 +12,7 @@
 #define PinB1 0 // D3
 #define PinB2 2 // D4 
 #define MIN_DIST 4 // минимальная дистанция
-#define DELAY_STOP 2000
+#define DELAY_STOP 800
 
 // Настройки точки доступа
 const char* ssid = "ESP8266_AP";
