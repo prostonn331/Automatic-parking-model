@@ -12,7 +12,7 @@ AF_Stepper motor(stepsPerRevolution, 2);  // Указываем что двиг�
  
 void setup()\
  {
-  motor.setSpeed(10);                     // Скорость двигателя в минуту
+  motor.setSpeed(5);                     // Скорость двигателя в минуту
   Serial.begin(9600);
 }
 
@@ -47,7 +47,7 @@ tempStr = recieveData();
         // поворачиваем по часовой
         cnt_toStop = (go_position - cur_position)*cnt_60deg;
         cur_position = go_position;
-        motor.step(cnt_toStop, FORWARD, MICROSTEP);  
+        motor.step(cnt_toStop, FORWARD, MICROSTEP);
         motor.release();  // Отключаем питание обмоток
         Serial.println(go_position); 
       }
