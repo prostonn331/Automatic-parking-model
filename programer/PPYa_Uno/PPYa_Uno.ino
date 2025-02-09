@@ -7,7 +7,11 @@
 #define in2 3
 #define in3 4
 #define in4 5
-#define STOP_PIN 8 // пин выключатель останова
+#define STOP_PIN 7 // пин выключатель останова
+#define in1_2 8
+#define in2_2 9
+#define in3_2 10
+#define in4_2 11
 
 const unsigned int cnt_60deg = 2048/6; // счетчик на один оборот
 byte ph_cnt = 1; // счетчик фаз
@@ -21,15 +25,17 @@ String tempStr = "";
 unsigned int cnt_toStop = 0; // счетчик до останова
 
 // прототип функций
-void motorClockwise();   //задаем прототип мотор по часовой
-void motorCounterClockwise();   //задаем прототип мотор против часовой
+void motor1Clockwise();   //задаем прототип мотор 1 по часовой
+void motor1CounterClockwise();   //задаем прототип мотор 1 против часовой
+
 String recieveData(); // данные с Serial
 
 // Создаем объекты 
 Scheduler userScheduler;   // планировщик
 
-Task taskMotorUp(TASK_MILLISECOND * 30 , TASK_FOREVER, &motorClockwise);   // задание для мотора по часовой
-Task taskMotorDown(TASK_MILLISECOND * 30 , TASK_FOREVER, &motorCounterClockwise);   // задание для мотора против часовой
+Task taskMotor1Up(TASK_MILLISECOND * 30 , TASK_FOREVER, &motor1Clockwise);   // задание для мотора 1 по часовой
+Task taskMotor1Down(TASK_MILLISECOND * 30 , TASK_FOREVER, &motor1CounterClockwise);   // задание для мотора 1 против часовой
+
 
 void setup() {
 
@@ -39,19 +45,25 @@ pinMode(in1, OUTPUT);
 pinMode(in2, OUTPUT);
 pinMode(in3, OUTPUT);
 pinMode(in4, OUTPUT);
+pinMode(in1_2, OUTPUT);
+pinMode(in2_2, OUTPUT);
+pinMode(in3_2, OUTPUT);
+pinMode(in4_2, OUTPUT);
+
 
 // добавляем задания в обработчик
-userScheduler.addTask(taskMotorUp);
-userScheduler.addTask(taskMotorDown);
+userScheduler.addTask(taskMotor1Up);
+userScheduler.addTask(taskMotor1Down);
+
 
  
 // калибровка при нажатой кнопке стоп
  if (!digitalRead(STOP_PIN)) {
-   taskMotorUp.enable();
+   taskMotor1Up.enable();
    while (!digitalRead(STOP_PIN)) {
     userScheduler.execute(); // обновляем задания планировщика
    }
-  taskMotorUp.disable();
+  taskMotor1Up.disable();
   step_cnt = 0;
  }
 
@@ -67,11 +79,11 @@ tempStr = recieveData();
         // поворачиваем по часовой
         cnt_toStop = (go_position - cur_position)*cnt_60deg;
         cur_position = go_position;
-        taskMotorUp.enable();
+        taskMotor1Up.enable();
           while (step_cnt < cnt_toStop) {
              userScheduler.execute();
          }
-        taskMotorUp.disable();
+        taskMotor1Up.disable();
         step_cnt = 0;
         Serial.println(go_position); 
       }
@@ -80,11 +92,11 @@ tempStr = recieveData();
         // поворачиваем против часовой
         cnt_toStop = (cur_position - go_position)*cnt_60deg;
         cur_position = go_position;
-        taskMotorDown.enable();
+        taskMotor1Down.enable();
           while (step_cnt < cnt_toStop) {
              userScheduler.execute();
          }
-        taskMotorDown.disable();
+        taskMotor1Down.disable();
         step_cnt = 0;
         Serial.println(go_position);  
       }
@@ -98,46 +110,78 @@ tempStr = recieveData();
 
 // Фазы 1...4 шагового двигателя:
 void phase1(){
-  digitalWrite(in1, HIGH); 
+  digitalWrite(in1, HIGH);
   digitalWrite(in2, LOW); 
   digitalWrite(in3, LOW); 
   digitalWrite(in4, HIGH);
   }
 
 void phase2(){
-  digitalWrite(in1, HIGH); 
-  digitalWrite(in2, HIGH); 
+  digitalWrite(in1, HIGH);
+  digitalWrite(in2, HIGH);
   digitalWrite(in3, LOW); 
   digitalWrite(in4, LOW);
- }
+  }
 
 void phase3(){
   digitalWrite(in1, LOW); 
   digitalWrite(in2, HIGH); 
-  digitalWrite(in3, HIGH); 
+  digitalWrite(in3, HIGH);
   digitalWrite(in4, LOW);
- }
+  }
 
 void phase4(){
   digitalWrite(in1, LOW); 
-  digitalWrite(in2, LOW); 
+  digitalWrite(in2, LOW);
   digitalWrite(in3, HIGH); 
   digitalWrite(in4, HIGH);
+  }
+
+void phase1_2(){
+  digitalWrite(in1_2, HIGH); 
+  digitalWrite(in2_2, LOW);
+  digitalWrite(in3_2, LOW);
+  digitalWrite(in4_2, HIGH);
+  }
+
+void phase2_2(){
+  digitalWrite(in1_2, HIGH); 
+  digitalWrite(in2_2, HIGH); 
+  digitalWrite(in3_2, LOW);
+  digitalWrite(in4_2, LOW);
+ }
+
+void phase3_2(){
+  digitalWrite(in1_2, LOW);
+  digitalWrite(in2_2, HIGH);
+  digitalWrite(in3_2, HIGH); 
+  digitalWrite(in4_2, LOW);
+ }
+
+void phase4_2(){
+  digitalWrite(in1_2, LOW);
+  digitalWrite(in2_2, LOW); 
+  digitalWrite(in3_2, HIGH);
+  digitalWrite(in4_2, HIGH);
 }
 
-void motorClockwise(){
+void motor1Clockwise(){
   switch (ph_cnt) { 
    case 1:
    phase4();
+   phase1_2();
    break;
    case 2:
    phase3();
+   phase2_2();
    break;
    case 3:
    phase2();
+   phase3_2();
    break;
    case 4:
    phase1();
+   phase4_2();
    break;
  }
  ph_cnt++;
@@ -146,20 +190,24 @@ void motorClockwise(){
    ph_cnt = 1;
 }
 
-void motorCounterClockwise(){
+void motor1CounterClockwise(){
 
   switch (ph_cnt) { 
    case 1:
    phase1();
+   phase4_2();
    break;
    case 2:
    phase2();
+   phase3_2();
    break;
    case 3:
    phase3();
+   phase2_2();
    break;
    case 4:
    phase4();
+   phase1_2();
    break;
  }
  ph_cnt++;
