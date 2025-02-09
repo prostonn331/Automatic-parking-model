@@ -4,15 +4,15 @@ from park import ParkingSystem # Импорт класса ParkingSystem из м
 import requests
 import json
 import time
-# import wiringpi
+import wiringpi
 
-'''
+
 def control_leds(red_pin, green_pin, blue_pin, red, green, blue):
 # Управляет светодиодами на основе входных сигналов.
     wiringpi.digitalWrite(red_pin, red)
     wiringpi.digitalWrite(green_pin, green)
     wiringpi.digitalWrite(blue_pin, blue)
-'''
+
 
 # настройка логгера
 logger = logging.getLogger(__name__)
@@ -33,7 +33,7 @@ retry_delay = 5  # Задержка между попытками (в секун
 # Основная программа
 def main():
     logger.debug("Запуск программы.")
-    orangePi = False
+    orangePi = True
     if orangePi:
         
         RED_PIN = 10
@@ -55,14 +55,18 @@ def main():
         if orangePi:
             control_leds(RED_PIN, GREEN_PIN, BLUE_PIN, 0, 0, 1)  # Включаем синий светодиод
         plate_number = recognize_qr_code_from_camera()
-        if orangePi:
-            control_leds(RED_PIN, GREEN_PIN, BLUE_PIN, 0, 1, 0)  # Включаем зеленый светодиод
         control_cmd = parking_system.assign_slot(plate_number)
         if (control_cmd ==1):
+            print("Хранение")
+            logger.info("Хранение")
             data = None
             while data == None: 
                 data = parking_system.receive_from_serial()
-            print (f'data from serial {data}')
+            # print (f'data from serial {data}')
+            if orangePi:
+                control_leds(RED_PIN, GREEN_PIN, BLUE_PIN, 0, 1, 0)  # Включаем зеленый светодиод
+            print("Разрешена загрузка")
+            logger.info("Разрешена загрузка")
             # выводим состояние парковки
             parked_cars = ", ".join([f"({i+1}, {car_number})" for i, car_number in enumerate(parking_system.parking_slots) ])
             logger.info("Состояние парковки: %s", parked_cars)
@@ -73,7 +77,7 @@ def main():
                     response = requests.get(f"{esp_ip}/status", timeout=5)
                     response.raise_for_status()
                     raw_response = response.text
-                    print("Сырой ответ сервера:", raw_response)
+                    # print("Сырой ответ сервера:", raw_response)
                 # Пробуем разобрать JSON
                     try:
                         data = json.loads(raw_response)  # Разбор вручную
@@ -117,10 +121,14 @@ def main():
                     print("Нет ответа от машины о парковке!")
                     logger.error("Нет ответа от машины о парковке!")
         if (control_cmd ==2):
+            print("Перемещение ячеек")
+            logger.info("Перемещение ячеек")
             data = None
             while data == None: 
                 data = parking_system.receive_from_serial()
-            print (f'data from serial {data}')    
+            # print (f'data from serial {data}') 
+            print("Разрешена выгрузка")
+            logger.info("Разрешена выгрузка")   
             # выводим состояние парковки
             parked_cars = ", ".join([f"({i+1}, {car_number})" for i, car_number in enumerate(parking_system.parking_slots) ])
             logger.info("Состояние парковки: %s", parked_cars)

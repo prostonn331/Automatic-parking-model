@@ -3,17 +3,12 @@
 
 #include "ServoSmooth.h" 
 
-#define STOP_PIN 7 // пин выключатель останова
 #define SERVO_PIN 9
 # define TOL 2 // точность установки угла
 ServoSmooth servo(180);   // создали с указанием макс. угла серво
 
 uint32_t servoTimer=0;
 uint32_t turnTimer=0;
-//const unsigned int cnt_60deg = 2048/6; // счетчик на один оборот
-//byte ph_cnt = 1; // счетчик фаз
-//unsigned long step_cnt = 0; // счетчик шагов двигателя
-bool stopBtn = false; // кнопка останова
 bool startFlag = false; // флаг старта
 byte cur_position = 1 ; // текущая позиция
 byte go_position = 1 ; // заданная позиция

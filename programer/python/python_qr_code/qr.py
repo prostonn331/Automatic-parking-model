@@ -13,13 +13,13 @@ formatter2 = logging.Formatter("%(name)s %(asctime)s %(levelname)s %(message)s")
 handler2.setFormatter(formatter2)
 # добавление обработчика к логгеру
 logger2.addHandler(handler2)
-ShowFlag = True
+ShowFlag = False
 
 def recognize_qr_code_from_camera():
 
     recognized_texts = ""
     # Запуск видеопотока с камеры
-    cap = cv2.VideoCapture(2)  # Индекс 0 для стандартной камеры 1 на ornagepi
+    cap = cv2.VideoCapture(1)  # Индекс 0 для стандартной камеры 1 на ornagepi
 
     if not cap.isOpened():
         logger2.error("Не удалось открыть камеру.")
@@ -38,8 +38,8 @@ def recognize_qr_code_from_camera():
         for obj in decoded_objects:
             # Вывод данных из QR-кода
             qr_data = obj.data.decode("utf-8")
-            logger2.info(f"QR-код найден: {qr_data}")
-            # print("QR-код найден:")
+            logger2.info(f"QR-код на автомобиле: {qr_data}")
+            print(f"QR-код на автомобиле: {qr_data}")
             # print(f"Данные: {qr_data}")
             # print(f"Тип: {obj.type}")
             recognized_texts = qr_data
