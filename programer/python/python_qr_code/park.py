@@ -47,6 +47,7 @@ class ParkingSystem:
             self.send_to_serial(slot + 1)  # Номер ячейки (от 1 до 6)
             self.parking_slots[slot] = None
             print(f"Машина {car_number} покинула ячейку {slot + 1}.")
+            logger3.info(f"Машина {car_number} покинула ячейку {slot + 1}.")
             return 2
         else:
             # Ищем первую свободную ячейку
@@ -54,7 +55,8 @@ class ParkingSystem:
             if slot is not None:
                 self.parking_slots[slot] = car_number
                 self.send_to_serial(slot + 1)  # Номер ячейки (от 1 до 6)
-                print(f"Машина {car_number} направлена в ячейку {slot + 1}.")
+                print(f"Номер ячейки хранения автомобиля {car_number} : {slot + 1}.")
+                logger3.info(f"Номер ячейки хранения автомобиля {car_number} : {slot + 1}.")
                 return 1
             else:
                 print("Нет свободных ячеек на парковке.")
